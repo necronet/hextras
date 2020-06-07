@@ -1,14 +1,26 @@
+library(lubridate)
 # Utility functions, this will serve as a kind of sink for functions 
-IGNORE_WORKERS_IDS = c(17, 116, 190)
+IGNORE_WORKERS_IDS = c(17, 116)
 
+SUNDAY_WDAY = 1
+SATURDAY_WDAY = 7
+WEEKENDS = c(SATURDAY_WDAY, SUNDAY_WDAY)
 
-get_worker_daily_hours <- function(worker_id) { 
-  if (worker_id == 88) {
+# TODO: this function should be simplify somehow
+get_worker_daily_hours <- function(worker_id, work_date) { 
+  work_date <- lubridate::wday(dmy(work_date))
+  if (is_weekend(work_date)) {
+    return(0.0)
+  }
+  if (worker_id %in% c(88)) {
     return (9.0)
   }
   return(9.6)
 }
 
+is_weekend <- function(wday) {
+  wday %in% WEEKENDS
+}
 
 
 builtHeader <- function(wb, sheet) {
