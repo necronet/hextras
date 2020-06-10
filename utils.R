@@ -5,6 +5,7 @@ IGNORE_WORKERS_IDS = c(17, 116)
 SUNDAY_WDAY = 1
 SATURDAY_WDAY = 7
 WEEKENDS = c(SATURDAY_WDAY, SUNDAY_WDAY)
+MONTHS = c("ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE")
 
 # TODO: this function should be simplify somehow
 get_worker_daily_hours <- function(worker_id, work_date) { 
@@ -23,14 +24,27 @@ is_weekend <- function(wday) {
 }
 
 
-builtHeader <- function(wb, sheet) {
+get_header_text <- function(fechas) {
+  max_date <- max(lubridate::dmy(fechas))
+  get_header_from_date(max_date)
+}
+
+get_header_from_date <- function(date) {
+  paste("PERIODO", case_when(lubridate::day(date) < 16 ~ "1º", TRUE ~ "2º"), 
+        MONTHS[lubridate::month(date)], 
+        lubridate::year(date))
+}
+
+
+builtHeader <- function(wb, sheet, min_date, max_date) {
   library(xlsx)
   
   TITLE_STYLE <- CellStyle(wb)+ Font(wb,  heightInPoints=16, isBold=TRUE, underline=1)
   SUBTITLE_STYLE <- CellStyle(wb)+ Font(wb,  heightInPoints=14, isBold=FALSE, underline=0)
   
-  title<-'REPORTE DE HORAS EXTRAS PRODUCCIÓN 2º MAYO 2020'
-  subtitle <- 'PERIODO: 		11 MAYO AL 25 MAYO 2020	'
+  title<-paste('REPORTE DE HORAS EXTRAS PRODUCCIÓN', get_header_from_date(max_date))
+  subtitle <- paste('PERIODO:', lubridate::day(min_date), MONTHS[lubridate::month(min_date)],
+                      "AL", lubridate::day(max_date), MONTHS[lubridate::month(max_date)], lubridate::year(max_date))
   subtitle2 <- '1. HORARIOS OPERADORES Y AUXILIARES PRODUCCIÓN'
   subtitle3 <- '(JORNADA CONTINUA) 48 HORAS SEMANALES - TURNO DIURNO'
   

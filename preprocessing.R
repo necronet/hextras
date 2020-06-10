@@ -7,8 +7,6 @@ library(r2excel)
 library(purrr)
 source('utils.R')
 
-MONTHS = c("ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE")
-
 #TEST_WORKER_ID <- c(190)
 workers <-  read_excel("data/trabajadores_horas_extras.xlsx")
 #workers %>% head(15) %>% dput
@@ -39,7 +37,6 @@ dumpTable <- function(worker_workday, currentID = 190) {
     mutate(
       workday_total_hours = as.numeric(total_workday),
       workday_total_hours = workday_total_hours - map_dbl(Fecha, ~get_worker_daily_hours(currentID, . ))) %>% 
-    
     mutate(total_workday_with_lunch = workday_total_hours -lunch_delta ) %>%
     mutate(ENTRADA = format(T1, "%H:%M %p"), `SALIDA A ALMUERZO` = format(T2, "%H:%M %p"),
            `ENTRADA ALMUERZO` = format(T3, "%H:%M %p"), `HORA ALMUERZO`=paste0(as.numeric(lunch), " min"),
@@ -56,12 +53,6 @@ dumpTable <- function(worker_workday, currentID = 190) {
     pivot_wider(names_from = "Fecha", values_from = "Hora")
 }
 
-get_header_text <- function(fechas) {
-  max_date <- max(lubridate::dmy(fechas))
-  paste("PERIODO", case_when(lubridate::day(max_date) < 16 ~ "1º", TRUE ~ "2º"), 
-        MONTHS[lubridate::month(max_date)], 
-        lubridate::year(max_date))
-}
 
 #R <- dumpTable(worker_workday, 7)
 
@@ -72,6 +63,9 @@ for(i in 1:nrow(IDS) ) {
   currentID <- IDS[i,]$ID
   fullname <- worker_id %>% filter(ID == currentID) %>% select(Name)
   
+  max_date <- max(lubridate::dmy(worker_workday$Fecha))
+  min_date <- min(lubridate::dmy(worker_workday$Fecha))
+  
   filename <- paste0("generated/",fullname,".xls")
   wb <- createWorkbook(type="xlsx")
   sheet <- createSheet(wb, sheetName = "hoja1")
@@ -79,15 +73,17 @@ for(i in 1:nrow(IDS) ) {
   TITLE_STYLE <- CellStyle(wb)+ Font(wb,  heightInPoints=16, isBold=TRUE, underline=1)
   SUBTITLE_STYLE <- CellStyle(wb)+ Font(wb,  heightInPoints=14, isBold=FALSE, underline=0)
   
-  builtHeader(wb, sheet)
+  builtHeader(wb, sheet, min_date, max_date)
   
   resultTable <- dumpTable(worker_workday, currentID)
-    
+  
   xlsx.addTable(wb, sheet, R[1:4,], startCol=2)
   xlsx.addTable(wb, sheet, R[5,] %>% mutate_at(vars(matches("\\d{2}\\/\\d{2}\\/\\d{4}")), as.numeric), 
-                  startCol=2, col.names = FALSE)
-  xlsx.addTable(wb, sheet, R[6,], startCol=2, col.names = FALSE)
-  xlsx.addTable(wb, sheet, R[7:9,] %>% mutate_at(vars(matches("\\d{2}\\/\\d{2}\\/\\d{4}")), as.numeric), startCol=2, col.names = FALSE)
+                  startCol=2, col.names = FALSE, row.names = T)
+  xlsx.addTable(wb, sheet, R[6,], startCol=2, col.names = FALSE, row.names = T)
+  
+  xlsx.addTable(wb, sheet, R[7:9,] %>% mutate_at(vars(matches("\\d{2}\\/\\d{2}\\/\\d{4}")), as.numeric), 
+                startCol=2, col.names = FALSE)
     
   xlsx.addLineBreak(sheet, 4)
 
