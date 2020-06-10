@@ -7,28 +7,32 @@ library(r2excel)
 library(purrr)
 source('utils.R')
 
-#TEST_WORKER_ID <- c(190)
+MONTHS = c("ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE")
 
+#TEST_WORKER_ID <- c(190)
 workers <-  read_excel("data/trabajadores_horas_extras.xlsx")
+#workers %>% head(15) %>% dput
 
 worker_id <- workers %>% filter(!str_detect(Fecha, "\\d{2}\\/\\d{2}\\/\\d{4}")) %>% 
         mutate(worker = Fecha) %>% select(worker) %>% 
         separate(worker, c('ID','Name'), sep = "\\-") %>% mutate(ID = as.integer(ID), Name = str_trim(Name)) %>%
         filter(!(ID %in% IGNORE_WORKERS_IDS))
 
-worker_workday <- workers %>% filter(!(ID %in% IGNORE_WORKERS_IDS)) %>% mutate( Registros = ifelse(toupper(Registros) == "VACACIONES", NA, Registros), Obs = `...13` ) %>% 
+worker_workday <- workers %>% 
+            mutate(ID=case_when(
+              grepl(x=Fecha, pattern='^([0-9]+) .+') ~ gsub(x=Fecha, pattern='^([0-9]+) .+', replacement='\\1'), 
+              TRUE ~ NA_character_)) %>%
+            fill(ID) %>% filter(!is.na(Entrada)) %>% 
+            filter(!(ID %in% IGNORE_WORKERS_IDS)) %>% 
+            mutate( Registros = ifelse(toupper(Registros) == "VACACIONES", NA, Registros)) %>% 
             filter(str_detect(Fecha, "\\d{2}\\/\\d{2}\\/\\d{4}")) %>% filter(Registros != '--') %>%
-            filter(!is.na(Registros)) %>% select(ID, Fecha, Registros, Obs)  %>% 
+            filter(!is.na(Registros)) %>% select(ID, Fecha, Registros)  %>% 
             separate(Registros, c('T1','T2','T3','T4'), sep = "\\|") %>% mutate_all(str_trim) %>%
-            filter(!is.na(T4))
+            filter(!is.na(T4) & ID == 7)
             
 
-#lubridate::dmy_hms('11/05/2020 07:01:32')
-#round(as.POSIXct(starttime, format="%H:%M %S", tz="UTC"), units="hours")
-
-
 dumpTable <- function(worker_workday, currentID = 190) {
-  worker_workday %>% filter(ID == currentID) %>% select(-Obs) %>% mutate_at(vars(contains("T")), ~lubridate::dmy_hms(paste0(Fecha, .))) %>% 
+  worker_workday %>% filter(ID == currentID) %>% mutate_at(vars(contains("T")), ~lubridate::dmy_hms(paste0(Fecha, .))) %>% 
     mutate_at(vars(contains("T")), ~floor_date(., unit = "minute")) %>%
     mutate(lunch = T3 - T2, lunch_delta = pmax(0, (as.numeric(lunch) - 30)/60 )) %>%
     mutate( total_workday = T4 - T1 ) %>%
@@ -48,11 +52,18 @@ dumpTable <- function(worker_workday, currentID = 190) {
            `SALIDA`, `TIEMPO CONVERTIDO A HORAS`,
            `TIEMPO EXTRAORDINARIO = TIEMPO EFECTIVO - 9 HORAS LUNES A VIERNES`,
            `TIEMPO ALMUERZO MAYOR DE 30 MINUTOS`) %>%
-    pivot_longer(-Fecha, names_to = "PERIODO 2º MAYO 2020", values_to="Hora") %>%
+    pivot_longer(-Fecha, names_to = get_header_text(.$Fecha), values_to="Hora") %>%
     pivot_wider(names_from = "Fecha", values_from = "Hora")
 }
 
-#dumpTable(worker_workday, 190)
+get_header_text <- function(fechas) {
+  max_date <- max(lubridate::dmy(fechas))
+  paste("PERIODO", case_when(lubridate::day(max_date) < 16 ~ "1º", TRUE ~ "2º"), 
+        MONTHS[lubridate::month(max_date)], 
+        lubridate::year(max_date))
+}
+
+#R <- dumpTable(worker_workday, 7)
 
 IDS <- worker_workday %>% select(ID) %>% unique
 
@@ -69,8 +80,14 @@ for(i in 1:nrow(IDS) ) {
   SUBTITLE_STYLE <- CellStyle(wb)+ Font(wb,  heightInPoints=14, isBold=FALSE, underline=0)
   
   builtHeader(wb, sheet)
+  
+  resultTable <- dumpTable(worker_workday, currentID)
     
-  xlsx.addTable(wb, sheet, dumpTable(worker_workday, currentID), startCol=2)
+  xlsx.addTable(wb, sheet, R[1:4,], startCol=2)
+  xlsx.addTable(wb, sheet, R[5,] %>% mutate_at(vars(matches("\\d{2}\\/\\d{2}\\/\\d{4}")), as.numeric), 
+                  startCol=2, col.names = FALSE)
+  xlsx.addTable(wb, sheet, R[6,], startCol=2, col.names = FALSE)
+  xlsx.addTable(wb, sheet, R[7:9,] %>% mutate_at(vars(matches("\\d{2}\\/\\d{2}\\/\\d{4}")), as.numeric), startCol=2, col.names = FALSE)
     
   xlsx.addLineBreak(sheet, 4)
 
@@ -100,11 +117,6 @@ for(i in 1:nrow(IDS) ) {
   saveWorkbook(wb, filename)
   
 }
-
-  
-
-
-        
             
 
 
