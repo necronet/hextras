@@ -1,3 +1,5 @@
+.RData
+.RHistory
 .DS_Store
 .Rproj.user/*
 data/*
