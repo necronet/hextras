@@ -24,15 +24,7 @@ build_timesheet <- function(workersTimeClock) {
     
     xlsx.addTable(wb, sheet, resultTable, startCol = 1)
     
-    # xlsx.addTable(wb, sheet, resultTable[1:4,], startCol=2)
-    # xlsx.addTable(wb, sheet, resultTable[5,] %>% mutate_at(vars(matches("\\d{2}\\/\\d{2}\\/\\d{4}")), as.numeric), 
-    #               startCol=2, col.names = FALSE, row.names = T)
-    # xlsx.addTable(wb, sheet, resultTable[6,], startCol=2, col.names = FALSE, row.names = T)
-    # 
-    # xlsx.addTable(wb, sheet, resultTable[7:9,] %>% mutate_at(vars(matches("\\d{2}\\/\\d{2}\\/\\d{4}")), as.numeric), 
-    #               startCol=2, col.names = FALSE)
-    
-    xlsx.addLineBreak(sheet, 4)
+    xlsx.addLineBreak(sheet, 2)
     
     TITLE_STYLE <- CellStyle(wb)+ Font(wb,  heightInPoints=16, isBold=TRUE, underline=1)
     SUBTITLE_STYLE <- CellStyle(wb) + Font(wb,  heightInPoints=16, isBold=TRUE)
