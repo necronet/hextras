@@ -2,13 +2,10 @@ library(readxl)
 library(dplyr)
 library(tidyr)
 library(stringr)
-library(lubridate)
-library(r2excel)
 library(purrr)
 source('utils.R')
 
-
-## Provides the workers id set
+## From raw data it will get the worker list of ids
 getWorkersId <-function(workerData, workersId) {
   workerData %>% filter(!str_detect(Fecha, "\\d{2}\\/\\d{2}\\/\\d{4}")) %>% 
     mutate(worker = Fecha) %>% select(worker) %>% 
@@ -18,6 +15,7 @@ getWorkersId <-function(workerData, workersId) {
   
 }
 
+# From raw data it will provide the timeclock of the workers
 getWorkerTimeClock <- function(workerData, workersId = NULL){
   workerData %>% 
     mutate(ID=case_when(
@@ -33,9 +31,9 @@ getWorkerTimeClock <- function(workerData, workersId = NULL){
     filter(!is.na(T4)) %>% mutate(ID = as.integer(ID))
 }
 
-process <- function(sourceFile, workersId = NULL) {
+# Process the source file and transform it into a timeClock tidy data
+processTimeClock <- function(sourceFile, workersId = NULL) {
   workers <-  read_excel(sourceFile)
-  #workersIds <- getWorkersId(workers, workersId)
   
   worker_id <- workers %>% filter(!str_detect(Fecha, "\\d{2}\\/\\d{2}\\/\\d{4}")) %>% 
     mutate(worker = Fecha) %>% select(worker) %>% 
@@ -44,25 +42,4 @@ process <- function(sourceFile, workersId = NULL) {
     filter(!(ID %in% IGNORE_WORKERS_IDS))
   
   getWorkerTimeClock(workers, workersId)  %>% inner_join(worker_id)
-  #getWorkersId(workers, workersId) %>% unique
-  
-} 
-
-# 
-# fix_schedule_str <- function(x) {
-#   case_when( length(x) != 4 ~ "NOT A VALUE", T ~ x)
-# }
-# 
-# A <- map(D, fix_schedule_str)
-# 
-# fix_schedule_text <- function(x) {
-#   D <- x %>% str_split("\\|")  
-#   
-#   
-#   if_else(is.na(x),"NOT VALUE",x)
-# }
-# 
-
-
-
-
+}

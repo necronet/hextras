@@ -15,12 +15,13 @@ timeTable <- function(worker_workday, currentID = 190) {
            `SOBRE EXCESO T/ ALMUERZO` = sprintf("%.2f", as.numeric(lunch_delta)),
            `SALIDA` = format(T4, "%H:%M %p"),
            `TIEMPO CONVERTIDO A HORAS`=sprintf("%.2f", total_workday),
-           `TIEMPO EXTRAORDINARIO = TIEMPO EFECTIVO - 9 HORAS LUNES A VIERNES` = sprintf("%.2f",workday_total_hours),
-           `TIEMPO ALMUERZO MAYOR DE 30 MINUTOS` = sprintf("%.2f",total_workday_with_lunch)) %>%
+           `TIEMPO EXTRA = TE - 9.6` = sprintf("%.2f",workday_total_hours),
+           `TIEMPO EXTRA/ FALTANTE` = sprintf("%.2f",total_workday_with_lunch),
+           `VIATICO ALIMENTACION` = "", `VIATICO TRANSPORTE` = "") %>%
     select(Fecha, ENTRADA, `SALIDA A ALMUERZO`, `ENTRADA ALMUERZO`, `HORA ALMUERZO`, `SOBRE EXCESO T/ ALMUERZO`,
            `SALIDA`, `TIEMPO CONVERTIDO A HORAS`,
-           `TIEMPO EXTRAORDINARIO = TIEMPO EFECTIVO - 9 HORAS LUNES A VIERNES`,
-           `TIEMPO ALMUERZO MAYOR DE 30 MINUTOS`) %>%
-    pivot_longer(-Fecha, names_to = get_header_text(.$Fecha), values_to="Hora") %>%
-    pivot_wider(names_from = "Fecha", values_from = "Hora")
+           `TIEMPO EXTRA = TE - 9.6`,
+           `TIEMPO EXTRA/ FALTANTE`)
+    #pivot_longer(-Fecha, names_to = get_header_text(.$Fecha), values_to="Hora") %>%
+    #pivot_wider(names_from = "Fecha", values_from = "Hora")
 }
