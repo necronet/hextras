@@ -35,30 +35,32 @@ get_header_from_date <- function(date) {
         lubridate::year(date))
 }
 
-
 builtHeader <- function(wb, sheet, min_date, max_date) {
   library(xlsx)
   
-  TITLE_STYLE <- CellStyle(wb)+ Font(wb,  heightInPoints=16, isBold=TRUE, underline=1)
-  SUBTITLE_STYLE <- CellStyle(wb)+ Font(wb,  heightInPoints=14, isBold=FALSE, underline=0)
+  TITLE_STYLE <- CellStyle(wb) + Font(wb,  heightInPoints=22, isBold=TRUE, underline = 2, boldweight = 900) + Alignment(h="ALIGN_CENTER")
+  SUBTITLE_STYLE1 <- CellStyle(wb) + Font(wb,  heightInPoints=18, isBold=TRUE) + Alignment(h="ALIGN_CENTER")
+  SUBTITLE_STYLE2 <- CellStyle(wb) + Font(wb,  heightInPoints=16, isBold=TRUE) + Alignment(h="ALIGN_CENTER")
+  SUBTITLE_STYLE3 <- CellStyle(wb) + Font(wb,  heightInPoints=14, isBold=TRUE) + Alignment(h="ALIGN_CENTER")
+  SUBTITLE_STYLE <- CellStyle(wb) + Font(wb,  heightInPoints=14, isBold=FALSE)
   
-  title<-paste('REPORTE DE HORAS EXTRAS PRODUCCIÓN', get_header_from_date(max_date))
+  title <- paste('REPORTE DE HORAS EXTRAS PRODUCCIÓN', get_header_from_date(max_date))
   subtitle <- paste('PERIODO:', lubridate::day(min_date), MONTHS[lubridate::month(min_date)],
                       "AL", lubridate::day(max_date), MONTHS[lubridate::month(max_date)], lubridate::year(max_date))
   subtitle2 <- '1. HORARIOS OPERADORES Y AUXILIARES PRODUCCIÓN'
   subtitle3 <- '(JORNADA CONTINUA) 48 HORAS SEMANALES - TURNO DIURNO'
   
-  xlsx.addHeader(wb, sheet, value=title,level=1, color="black", underline=1)
-  xlsx.addLineBreak(sheet, 1)
+  addHeader(wb, sheet, value=title, startCol = 1, textStyle = TITLE_STYLE)
+  addMergedRegion(sheet, 1, 1, 1, 10)
   
-  xlsx.addHeader(wb, sheet, value=subtitle,level=2, color="black", underline=1)
-  xlsx.addLineBreak(sheet, 1)
+  addHeader(wb, sheet, value=subtitle, startCol = 1, textStyle = SUBTITLE_STYLE1)
+  addMergedRegion(sheet, 2, 2, 1, 10)
   
-  xlsx.addHeader(wb, sheet, value=subtitle2,level=2, color="black", underline=1)
-  xlsx.addLineBreak(sheet, 1)
+  addHeader(wb, sheet, value=subtitle2, startCol = 1, textStyle = SUBTITLE_STYLE2)
+  addMergedRegion(sheet, 3, 3, 1, 10)
   
-  xlsx.addHeader(wb, sheet, value=subtitle3,level=2, color="black", underline=1)
-  xlsx.addLineBreak(sheet, 1)
+  addHeader(wb, sheet, value=subtitle3, startCol = 1, textStyle = SUBTITLE_STYLE3)
+  addMergedRegion(sheet, 4, 4, 1, 10)
   
   xlsx.addLineBreak(sheet, 3)
   
@@ -97,4 +99,16 @@ xlsx.addTitle <- function(sheet, rows = NULL, rowIndex, colIndex, title, titleSt
   return (rows)
 }
 
+
+addHeader <- function (wb, sheet, value = "Header", startRow = NULL, startCol = 2, textStyle = NULL) 
+{
+  if (is.null(startRow)) {
+    rows <- getRows(sheet)
+    startRow = length(rows) + 1
+  }
+  rows <- createRow(sheet, rowIndex = startRow)
+  sheetTitle <- createCell(rows, colIndex = startCol)
+  setCellValue(sheetTitle[[1, 1]], value)
+  xlsx::setCellStyle(sheetTitle[[1, 1]], textStyle)
+}
 
