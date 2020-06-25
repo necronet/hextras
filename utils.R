@@ -13,6 +13,10 @@ get_worker_daily_hours <- function(worker_id, work_date) {
   if (is_weekend(work_date)) {
     return(0.0)
   }
+  get_hour_by_worker_id(worker_id)
+}
+
+get_hour_by_worker_id <- function(worker_id) {
   if (worker_id %in% c(88)) {
     return (9.0)
   }
@@ -35,7 +39,12 @@ get_header_from_date <- function(date) {
         lubridate::year(date))
 }
 
-builtHeader <- function(wb, sheet, min_date, max_date) {
+get_lunch_time <- function(worker_id) {
+  # Exception for Lechus
+  ifelse(worker_id == 108, 1.0, 0.5)
+}
+
+builtHeader <- function(wb, sheet, min_date, max_date, worker_id) {
   library(xlsx)
   
   TITLE_STYLE <- CellStyle(wb) + Font(wb,  heightInPoints=22, isBold=TRUE, underline = 2, boldweight = 900) + Alignment(h="ALIGN_CENTER")
@@ -44,7 +53,7 @@ builtHeader <- function(wb, sheet, min_date, max_date) {
   SUBTITLE_STYLE3 <- CellStyle(wb) + Font(wb,  heightInPoints=14, isBold=TRUE) + Alignment(h="ALIGN_CENTER")
   SUBTITLE_STYLE <- CellStyle(wb) + Font(wb,  heightInPoints=14, isBold=FALSE)
   
-  SUBTITLE_STYLE4 <- CellStyle(wb) + Font(wb,  heightInPoints=16, isBold=TRUE, underline = T)
+  SUBTITLE_STYLE4 <- CellStyle(wb) + Font(wb,  heightInPoints=14, isBold=TRUE, underline = T)
   SUBTITLE_STYLE5 <- CellStyle(wb) + Font(wb,  heightInPoints=14)
   
   title <- paste('REPORTE DE HORAS EXTRAS PRODUCCIÓN', get_header_from_date(max_date))
@@ -67,26 +76,29 @@ builtHeader <- function(wb, sheet, min_date, max_date) {
   
   xlsx.addLineBreak(sheet, 3)
   
-  rows <- xlsx.addTitle(sheet, NULL, 7, 2, "ENTRADA", SUBTITLE_STYLE4)
-  xlsx.addTitle(sheet, rows, 7, 3, "SALIDA", SUBTITLE_STYLE4)
-  xlsx.addTitle(sheet, rows, 7, 5, "HORAS DIARIAS", SUBTITLE_STYLE4)
-  xlsx.addTitle(sheet, rows, 7, 8, "TIEMPO HE", SUBTITLE_STYLE4)
-  xlsx.addTitle(sheet, rows, 7, 10, "HRS", SUBTITLE_STYLE5)
+  rows <- xlsx.addTitle(sheet, NULL, 7, 3, "ENTRADA", SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 7, 4, "SALIDA", SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 7, 6, "HORAS DIARIAS", SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 7, 7, get_hour_by_worker_id(worker_id), SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 7, 9, "TIEMPO HE", SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 7, 11, "HRS", SUBTITLE_STYLE5)
   
-  rows <- xlsx.addTitle(sheet, NULL, 8, 1, "LUNES A VIERNES", SUBTITLE_STYLE4)
+  rows <- xlsx.addTitle(sheet, NULL, 8, 2, "LUNES A VIERNES", SUBTITLE_STYLE4)
   
-  xlsx.addTitle(sheet, rows, 8, 2, "7:00 AM", SUBTITLE_STYLE5)
-  xlsx.addTitle(sheet, rows, 8, 3, "4:36 PM", SUBTITLE_STYLE5)
-  xlsx.addTitle(sheet, rows, 8, 5, "DIA SEMANAS", SUBTITLE_STYLE4)
-  xlsx.addTitle(sheet, rows, 8, 8, "DEDUCCION", SUBTITLE_STYLE4)
-  xlsx.addTitle(sheet, rows, 8, 10, "HRS", SUBTITLE_STYLE5)
+  xlsx.addTitle(sheet, rows, 8, 3, "7:00 AM", SUBTITLE_STYLE5)
+  xlsx.addTitle(sheet, rows, 8, 4, "4:36 PM", SUBTITLE_STYLE5)
+  xlsx.addTitle(sheet, rows, 8, 6, "DIA SEMANAS", SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 8, 7, 5, SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 8, 9, "DEDUCCION", SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 8, 11, "HRS", SUBTITLE_STYLE5)
   
-  rows <- xlsx.addTitle(sheet, NULL, 9, 1, "TIEMPO ALMUERZO", SUBTITLE_STYLE4)
-  xlsx.addTitle(sheet, rows, 9, 2, "0,5", SUBTITLE_STYLE5)
-  xlsx.addTitle(sheet, rows, 9, 3, "hr", SUBTITLE_STYLE5)
-  xlsx.addTitle(sheet, rows, 9, 5, "HORAS SEMANALES", SUBTITLE_STYLE4)
-  xlsx.addTitle(sheet, rows, 9, 8, "TOTAL HE", SUBTITLE_STYLE4)
-  xlsx.addTitle(sheet, rows, 9, 10, "HRS", SUBTITLE_STYLE5)
+  rows <- xlsx.addTitle(sheet, NULL, 9, 2, "TIEMPO ALMUERZO", SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 9, 3, get_lunch_time(worker_id), SUBTITLE_STYLE5)
+  xlsx.addTitle(sheet, rows, 9, 4, "hr", SUBTITLE_STYLE5)
+  xlsx.addTitle(sheet, rows, 9, 6, "HORAS SEMANALES", SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 9, 7, get_hour_by_worker_id(worker_id) * 5, SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 9, 9, "TOTAL HE", SUBTITLE_STYLE4)
+  xlsx.addTitle(sheet, rows, 9, 11, "HRS", SUBTITLE_STYLE5)
   xlsx.addLineBreak(sheet, 2)
 }
 

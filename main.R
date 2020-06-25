@@ -7,5 +7,4 @@ generateFiles <- function(sourceFile) {
   build_timesheet(workerTimeClock)  
 }
 
-
 generateFiles("data/trabajadores_horas_extras.xlsx")
