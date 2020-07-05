@@ -6,6 +6,7 @@ build_timesheet <- function(workersTimeClock) {
   library(lubridate)
   library(r2excel)
   
+  wb <- createWorkbook(type="xlsx")
   IDS <- workersTimeClock %>% select(ID) %>% unique
   for(i in 1:nrow(IDS)) {
     # Obtain parameter  ---------------------------------
@@ -15,10 +16,7 @@ build_timesheet <- function(workersTimeClock) {
     max_date <- max(lubridate::dmy(workersTimeClock$Fecha))
     min_date <- min(lubridate::dmy(workersTimeClock$Fecha))
     
-    filename <- paste0("generated/",fullname,".xls")
-    wb <- createWorkbook(type="xlsx")
-    sheet <- createSheet(wb, sheetName = "hoja1")
-    
+    sheet <- createSheet(wb, sheetName = fullname)
     builtHeader(wb, sheet, min_date, max_date, currentID)
     
     # Result table  ---------------------------------
@@ -54,8 +52,8 @@ build_timesheet <- function(workersTimeClock) {
     setCellValue(sheetTitle[[1,1]], fullname)
     setCellStyle(sheetTitle[[1,1]], SUBTITLE_STYLE)
     
-    saveWorkbook(wb, filename)
-    
+    filename <- paste0("generated/",get_report_filename(max_date),".xls")
   }
+  saveWorkbook(wb, filename)
   
 }

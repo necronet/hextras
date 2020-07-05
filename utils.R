@@ -39,6 +39,12 @@ get_header_from_date <- function(date) {
         lubridate::year(date))
 }
 
+get_report_filename <- function(date) {
+  paste("REPORTE-", case_when(lubridate::day(date) < 16 ~ "PRIMERO-", TRUE ~ "SEGUNDO-"), 
+        MONTHS[lubridate::month(date)], 
+        lubridate::year(date))
+}
+
 get_lunch_time <- function(worker_id) {
   # Exception for Lechus
   ifelse(worker_id == 108, 1.0, 0.5)
