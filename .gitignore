@@ -1,3 +1,5 @@
+*.sqlite
+
 *.xlsx
 .RData
 .RHistory
