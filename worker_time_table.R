@@ -19,7 +19,7 @@ timeTable <- function(worker_workday, currentID = 190, lunch_time = 0.5) {
            `TIEMPO CONVERTIDO A HORAS`=sprintf("%.2f", total_workday),
            `TIEMPO EXTRA = TE - 9.6` = sprintf("%.2f",workday_total_hours),
            `TIEMPO EXTRA/ FALTANTE` = sprintf("%.2f",total_workday_with_lunch),
-           `VIATICO ALIMENTACION` = "", `VIATICO TRANSPORTE` = "", `OBSERVACIONES` = "") %>%
+           `VIATICO ALIMENTACION` = viatico_alimentacion, `VIATICO TRANSPORTE` = viatico_transporte, `OBSERVACIONES` = Observaciones) %>%
     select(Fecha, ENTRADA, `SALIDA A ALMUERZO`, `ENTRADA ALMUERZO`, `HORA ALMUERZO`, `SOBRE EXCESO T/ ALMUERZO`,
            `SALIDA`, `TIEMPO CONVERTIDO A HORAS`,
            `TIEMPO EXTRA = TE - 9.6`,

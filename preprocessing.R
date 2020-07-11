@@ -24,9 +24,11 @@ getWorkerTimeClock <- function(workerData, workersId = NULL){
     fill(ID) %>% filter(!is.na(Entrada)) %>% 
     purrr::when(length(workersId) > 0 ~ filter(., ID %in% workersId), T ~ . ) %>%
     filter(!(ID %in% IGNORE_WORKERS_IDS)) %>% 
-    mutate(Registros = ifelse(toupper(Registros) == "VACACIONES", NA, Registros)) %>% 
+    mutate(Registros = ifelse(toupper(Registros) == "VACACIONES", NA, Registros), 
+              viatico_alimentacion = `Viatico alimentacion`, 
+              viatico_transporte = `Viatico de transporte`) %>% 
     filter(str_detect(Fecha, "\\d{2}\\/\\d{2}\\/\\d{4}")) %>% filter(Registros != '--') %>%
-    filter(!is.na(Registros)) %>% select(ID, Fecha, Registros, Observacion) %>%
+    filter(!is.na(Registros)) %>% select(ID, Fecha, Registros, Observaciones, viatico_alimentacion, viatico_transporte) %>%
     separate(Registros, c('T1','T2','T3','T4'), sep = "\\|") %>% mutate_all(str_trim) %>%
     filter(!is.na(T2)) %>% mutate(ID = as.integer(ID)) %>%
     mutate( incomplete = case_when(is.na(T4) ~ T, T ~ F), T4 = case_when(incomplete ~ T2, T ~ T4) )

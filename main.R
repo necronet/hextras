@@ -4,7 +4,9 @@ source('persistent.R')
 source('timesheet_builder.R')
 
 generateFiles <- function(sourceFile) {
-  workerTimeClock <- processTimeClock("data/trabajadores_horas_extras.xlsx") %>% 
+  workerTimeClock <- processTimeClock(sourceFile) %>% 
                      storeInDatabase() %>% 
                      build_timesheet()
 }
+
+generateFiles("data/trabajadores_horas_extras.xlsx")
