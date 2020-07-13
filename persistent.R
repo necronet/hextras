@@ -13,14 +13,19 @@ storeInDatabase <- function(workerTimeClock) {
     print(paste("Table:", worker_time_clock_tbl, "found. Loading persisted data"))
     
     persistentData <- dbReadTable(con, worker_time_clock_tbl)  
-    joinColumns <- c("ID","Fecha", "Name","T1","T2","T3","T4")
+    joinColumns <- c("ID","Fecha", "Name")
+    selectColumns <- c("ID","Fecha", "Name","T1","T2","T3","T4","incomplete", "Observaciones", "viatico_alimentacion", "viatico_transporte")
     
-    workerTimeClock <- workerTimeClock %>% inner_join(persistentData, by = joinColumns, suffix = c("_x", "_y")) %>% 
+    workerTimeClock <- workerTimeClock %>% left_join(persistentData, by = joinColumns, suffix = c("_x", "_y")) %>% 
       mutate(Observaciones = case_when(!is.na(Observaciones_x) ~ `Observaciones_x`, T ~ `Observaciones_y`),
              viatico_transporte = case_when(!is.na(viatico_transporte_x) ~ `viatico_transporte_x`, T ~ `viatico_transporte_y`),
              viatico_alimentacion = case_when(!is.na(viatico_alimentacion_x) ~ `viatico_alimentacion_x`, T ~ `viatico_alimentacion_y`),
+             T1 = T1_x,
+             T2 = T2_x,
+             T3 = T3_x,
+             T4 = T4_x,
              incomplete = incomplete_x) %>%
-      select(joinColumns, incomplete, Observaciones, viatico_alimentacion, viatico_transporte)
+      select(selectColumns)
     
     # From https://github.com/r-dbi/DBI/blob/master/R/table-insert.R#L47
     sqlValues <- sqlData(con, workerTimeClock)

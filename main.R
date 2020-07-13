@@ -8,3 +8,5 @@ generateFiles <- function(sourceFile) {
                      storeInDatabase() %>% 
                      build_timesheet()
 }
+
+#generateFiles("data/trabajadores_horas_extras2.xlsx")
