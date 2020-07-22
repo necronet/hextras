@@ -35,8 +35,16 @@ getWorkerTimeClock <- function(workerData, workersId = NULL){
 }
 
 # Process the source file and transform it into a timeClock tidy data
-processTimeClock <- function(sourceFile, workersId = NULL) {
+processTimeClock <- function(sourceFile, workersId = NULL, strickColumns = F) {
   workers <-  read_excel(sourceFile)
+  
+  #TODO: set this required columns into a config file
+  requiredColumns <- c("Fecha", "Registros", "Viatico alimentacion", "Viatico de transporte", "Observaciones")
+  missingColumns <- requiredColumns %in% colnames(workers)
+  if ( length(requiredColumns[!missingColumns]) > 0 & strickColumns ) {
+    stop(paste("Columnas insuficientes para general el reporte", paste(requiredColumns[!missingColumns], collapse = ',')))
+  }
+  
   
   worker_id <- workers %>% filter(!str_detect(Fecha, "\\d{2}\\/\\d{2}\\/\\d{4}")) %>% 
     mutate(worker = Fecha) %>% select(worker) %>% 
