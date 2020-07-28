@@ -4,9 +4,9 @@ timeTable <- function(worker_workday, currentID = 190, lunch_time = 0.5) {
   
   worker_workday %>% filter(ID == currentID) %>% mutate_at(vars(starts_with("T")), ~lubridate::dmy_hms(paste0(Fecha, .))) %>% 
     mutate_at(vars(starts_with("T")), ~floor_date(., unit = "minute")) %>%
-    mutate(lunch = T3 - T2, 
+    mutate(lunch = difftime(T3, T2, units="mins"), 
            lunch_delta = case_when(incomplete ~ -1, T ~ pmax(0, (as.numeric(lunch) - (lunch_time*60) )/60 ) ), 
-           total_workday = T4 - T1 ) %>% 
+           total_workday =  difftime(T4, T1, units="hours") ) %>%
     mutate(
       workday_total_hours = as.numeric(total_workday),
       workday_total_hours = workday_total_hours - map_dbl(Fecha, ~get_worker_daily_hours(currentID, . ))) %>% 
