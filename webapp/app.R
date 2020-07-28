@@ -5,17 +5,18 @@ VALID_MIME <- c("application/vnd.openxmlformats-officedocument.spreadsheetml.she
 
 ui <- fluidPage( 
     titlePanel("Generador de horas extras"),
-    sidebarLayout(
-      sidebarPanel(
-        fileInput("file1", "Archivo excel de origen",
-                  multiple = FALSE,
-                  accept = VALID_MIME),
-    ),
     mainPanel(
-      tableOutput("contents")
+      fluidRow(column(12,
+                      fileInput("file1", "Archivo excel de origen",
+                                multiple = FALSE,
+                                accept = VALID_MIME))),
+      fluidRow(
+        column(12, 
+               tableOutput("contents"))
+        )
     )
   )
-)
+
 
 server <- function(input, output) {
   output$contents <- renderTable({
