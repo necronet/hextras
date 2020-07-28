@@ -26,7 +26,7 @@ server <- function(input, output) {
     tryCatch(
       {
         processedData <- processTimeClock(input$file1$datapath, strickColumns=T) %>% 
-                          storeInDatabase() %>% timeTable()
+                          storeInDatabase() %>% timeTable(additionalColumns = c("Name"))
       },
       error = function(e) {
         # return a safeError if a parsing error occurs

@@ -1,6 +1,25 @@
+DEFAULT_SELECTED_COLUMNS <- c("Fecha", "ENTRADA", 
+                              "SALIDA A ALMUERZO", 
+                              "ENTRADA ALMUERZO", "HORA ALMUERZO", "SOBRE EXCESO T/ ALMUERZO",
+                              "SALIDA", "TIEMPO CONVERTIDO A HORAS",
+                              "TIEMPO EXTRA = TE - 9.6",
+                              "TIEMPO EXTRA/ FALTANTE",
+                              "VIATICO ALIMENTACION",
+                              "VIATICO TRANSPORTE",
+                              "OBSERVACIONES")
 
-timeTable <- function(worker_workday, currentID = -1, lunch_time = 0.5) {
+addRetrievalColumns <- function(newColumns) {
+  return(c(newColumns, DEFAULT_SELECTED_COLUMNS))
+}
+
+timeTable <- function(worker_workday, currentID = -1, lunch_time = 0.5, additionalColumns = NULL) {
   library(lubridate)
+  
+  if (is.null(additionalColumns)) {
+    selectColumns <- DEFAULT_SELECTED_COLUMNS
+  } else {
+    selectColumns <- addRetrievalColumns(additionalColumns)
+  }
   
   worker_workday %>% 
     purrr::when( currentID == -1 ~ worker_workday, ~ filter(., ID == currentID) ) %>%
@@ -22,13 +41,7 @@ timeTable <- function(worker_workday, currentID = -1, lunch_time = 0.5) {
            `TIEMPO EXTRA = TE - 9.6` = sprintf("%.2f",workday_total_hours),
            `TIEMPO EXTRA/ FALTANTE` = sprintf("%.2f",total_workday_with_lunch),
            `VIATICO ALIMENTACION` = viatico_alimentacion, `VIATICO TRANSPORTE` = viatico_transporte, `OBSERVACIONES` = Observaciones) %>%
-    select(Fecha, ENTRADA, `SALIDA A ALMUERZO`, `ENTRADA ALMUERZO`, `HORA ALMUERZO`, `SOBRE EXCESO T/ ALMUERZO`,
-           `SALIDA`, `TIEMPO CONVERTIDO A HORAS`,
-           `TIEMPO EXTRA = TE - 9.6`,
-           `TIEMPO EXTRA/ FALTANTE`,
-           `VIATICO ALIMENTACION`,
-           `VIATICO TRANSPORTE`,
-           `OBSERVACIONES`)
+    select(selectColumns)
     #pivot_longer(-Fecha, names_to = get_header_text(.$Fecha), values_to="Hora") %>%
     #pivot_wider(names_from = "Fecha", values_from = "Hora")
 }
