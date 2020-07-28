@@ -1,35 +1,41 @@
 library(shiny)
+source('preprocessing.R', local = TRUE)
+
+VALID_MIME <- c("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel")
 
 ui <- fluidPage( 
-    titlePanel("Shiny application"),
+    titlePanel("Generador de horas extras"),
     sidebarLayout(
       sidebarPanel(
-        sliderInput(inputId = "bins",
-                    label = "Number of bins:",
-                     min = 1,
-                     max = 100,
-                    value = 30
-      )
+        fileInput("file1", "Archivo excel de origen",
+                  multiple = FALSE,
+                  accept = VALID_MIME),
     ),
     mainPanel(
-      plotOutput(outputId = "distPlot")
+      tableOutput("contents")
     )
   )
 )
 
 server <- function(input, output) {
-  output$distPlot <- renderPlot({
-    x <- faithful$waiting
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+  output$contents <- renderTable({
     
-    hist(x, breaks = bins, col = "#75AADB", border = "white",
-         xlab = "Waiting time to next eruption (in mins)",
-         main = "Histogram of waiting times")
+    req(input$file1)
+    
+    tryCatch(
+      {
+        processedData <- processTimeClock(input$file1$datapath, strickColumns=T) %>% 
+                          storeInDatabase() %>% timeTable()
+      },
+      error = function(e) {
+        # return a safeError if a parsing error occurs
+        print("This is an error")
+        stop(safeError(e))
+      }
+    )
+    return(processedData)
     
   })
 }
 
 shinyApp(ui, server)
-
-# library(shiny)
-# runApp("webapp")

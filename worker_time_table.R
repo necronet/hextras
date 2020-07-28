@@ -1,15 +1,17 @@
 
-timeTable <- function(worker_workday, currentID = 190, lunch_time = 0.5) {
+timeTable <- function(worker_workday, currentID = -1, lunch_time = 0.5) {
   library(lubridate)
   
-  worker_workday %>% filter(ID == currentID) %>% mutate_at(vars(starts_with("T")), ~lubridate::dmy_hms(paste0(Fecha, .))) %>% 
+  worker_workday %>% 
+    purrr::when( currentID == -1 ~ worker_workday, ~ filter(., ID == currentID) ) %>%
+    mutate_at(vars(starts_with("T")), ~lubridate::dmy_hms(paste0(Fecha, .))) %>% 
     mutate_at(vars(starts_with("T")), ~floor_date(., unit = "minute")) %>%
     mutate(lunch = difftime(T3, T2, units="mins"), 
            lunch_delta = case_when(incomplete ~ -1, T ~ pmax(0, (as.numeric(lunch) - (lunch_time*60) )/60 ) ), 
            total_workday =  difftime(T4, T1, units="hours") ) %>%
     mutate(
       workday_total_hours = as.numeric(total_workday),
-      workday_total_hours = workday_total_hours - map_dbl(Fecha, ~get_worker_daily_hours(currentID, . ))) %>% 
+      workday_total_hours = workday_total_hours - map2_dbl(ID, Fecha, get_worker_daily_hours)) %>% 
     mutate(total_workday_with_lunch = workday_total_hours -lunch_delta ) %>% 
     mutate(ENTRADA = format(T1, "%H:%M %p"), `SALIDA A ALMUERZO` = format(T2, "%H:%M %p"),
            `ENTRADA ALMUERZO` = ifelse(is.na(T3),"*",format(T3, "%H:%M %p")), 

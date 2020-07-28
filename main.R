@@ -8,9 +8,3 @@ generateFiles <- function(sourceFile, strickColumns = T) {
                      storeInDatabase() %>% 
                      build_timesheet()
 }
-
-
-
-data <- processTimeClock("data/julio2.xlsx", strickColumns=T) %>% filter(ID == 7) %>% storeInDatabase() 
-
-timeTable(7, get_lunch_time(7))
