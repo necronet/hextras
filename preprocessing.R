@@ -21,7 +21,7 @@ getWorkerTimeClock <- function(workerData, workersId = NULL){
     mutate(ID=case_when(
       grepl(x=Fecha, pattern='^([0-9]+) .+') ~ gsub(x=Fecha, pattern='^([0-9]+) .+', replacement='\\1'), 
       TRUE ~ NA_character_)) %>%
-    fill(ID) %>% filter(!is.na(Entrada)) %>% 
+    fill(ID) %>% filter(across(any_of("Entrada"), ~!is.na(.x))) %>% 
     purrr::when(length(workersId) > 0 ~ filter(., ID %in% workersId), T ~ . ) %>%
     filter(!(ID %in% IGNORE_WORKERS_IDS)) %>% 
     mutate(Registros = ifelse(toupper(Registros) == "VACACIONES", NA, Registros), 
