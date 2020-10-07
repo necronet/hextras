@@ -5,6 +5,24 @@ getConnection <- function() {
   dbConnect(RSQLite::SQLite(), dbname = DATABASE_NAME)
 }
 
+fetchFromDatabase <- function(from = "2020/08/01" , to = "2020/08/10") {
+  # TODO: rewrite parametarization based on glue_sql
+  datesRange <- format( seq(from = as.Date(from), to = as.Date(to), by = "day"), "%d/%m/%Y")
+  
+  worker_time_clock_tbl <- "worker_time_clock"
+  selectColumns <- c("ID","Fecha", "Name","T1","T2","T3","T4","incomplete", "Observaciones", "viatico_alimentacion", "viatico_transporte")
+  
+  con <- getConnection()
+  
+  results <- dbGetQuery(con, paste0("SELECT ",paste0(selectColumns, collapse = ","),
+                          " FROM ",worker_time_clock_tbl, " where Fecha in ",
+                            paste0("('",paste0(datesRange, collapse="','"),"')")))
+  dbDisconnect(con)
+  
+  print(paste0("Fetched:", nrow(results), " rows from db"))
+  return(results %>% tbl_df %>% mutate(incomplete = as.logical(incomplete)))
+}
+
 storeInDatabase <- function(workerTimeClock) {
   con <- getConnection()
   worker_time_clock_tbl <- "worker_time_clock"

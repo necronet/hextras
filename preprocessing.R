@@ -25,8 +25,9 @@ getWorkerTimeClock <- function(workerData, workersId = NULL){
     purrr::when(length(workersId) > 0 ~ filter(., ID %in% workersId), T ~ . ) %>%
     filter(!(ID %in% IGNORE_WORKERS_IDS)) %>% 
     mutate(Registros = ifelse(toupper(Registros) == "VACACIONES", NA, Registros), 
-              viatico_alimentacion = `Viatico alimentacion`, 
-              viatico_transporte = `Viatico de transporte`) %>% 
+              viatico_alimentacion = `VIATICO ALIMENTACION`, 
+              viatico_transporte = `VIATICO TRANSPORTE`,
+              Observaciones = OBSERVACIONES) %>% 
     filter(str_detect(Fecha, "\\d{2}\\/\\d{2}\\/\\d{4}")) %>% filter(Registros != '--') %>%
     filter(!is.na(Registros)) %>% select(ID, Fecha, Registros, Observaciones, viatico_alimentacion, viatico_transporte) %>%
     separate(Registros, c('T1','T2','T3','T4'), sep = "\\|") %>% mutate_all(str_trim) %>%
@@ -39,7 +40,7 @@ processTimeClock <- function(sourceFile, workersId = NULL, strickColumns = F) {
   workers <-  read_excel(sourceFile)
   
   #TODO: set this required columns into a config file
-  requiredColumns <- c("Fecha", "Registros", "Viatico alimentacion", "Viatico de transporte", "Observaciones")
+  requiredColumns <- c("Fecha", "Registros", "VIATICO ALIMENTACION", "VIATICO TRANSPORTE", "OBSERVACIONES")
   missingColumns <- requiredColumns %in% colnames(workers)
   if ( length(requiredColumns[!missingColumns]) > 0 & strickColumns ) {
     stop(paste("Columnas insuficientes para general el reporte", paste(requiredColumns[!missingColumns], collapse = ',')))
