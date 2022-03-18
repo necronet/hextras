@@ -1,6 +1,6 @@
 library(lubridate)
 # Utility functions, this will serve as a kind of sink for functions 
-IGNORE_WORKERS_IDS = c(17, 116)
+IGNORE_WORKERS_IDS = c(17)
 
 SUNDAY_WDAY = 1
 SATURDAY_WDAY = 7

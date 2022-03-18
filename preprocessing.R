@@ -30,13 +30,19 @@ getWorkerTimeClock <- function(workerData, workersId = NULL){
               Observaciones = OBSERVACIONES) %>% 
     filter(str_detect(Fecha, "\\d{2}\\/\\d{2}\\/\\d{4}")) %>% filter(Registros != '--') %>%
     filter(!is.na(Registros)) %>% select(ID, Fecha, Registros, Observaciones, viatico_alimentacion, viatico_transporte) %>%
-    separate(Registros, c('T1','T2','T3','T4'), sep = "\\|") %>% mutate_all(str_trim) %>%
+    separate(Registros, c('T1','T2','T3','T4'), sep = "\\|") %>% mutate_all(str_trim) %>% 
     filter(!is.na(T2)) %>% mutate(ID = as.integer(ID)) %>%
-    mutate( incomplete = case_when(is.na(T4) ~ T, T ~ F), T4 = case_when(incomplete ~ T2, T ~ T4) )
+    mutate( incomplete = case_when(is.na(T4) ~ T, T ~ F), 
+            T4 = case_when(incomplete ~ T2, T ~ T4),
+            T2 = case_when(incomplete ~ NA_character_, T ~ T2)) %>% 
+    # when T2 and T3 are not available replace the values with 12:00 and 13:00 range
+    mutate(T2 = case_when( is.na(T2) & is.na(T3) ~ "12:00:00", T ~ T2),
+           T3 = case_when( is.na(T3) ~ "13:00:00", T ~ T3),
+           incomplete = case_when(is.na(T4) ~ T, T ~ F))
 }
 
 # Process the source file and transform it into a timeClock tidy data
-processTimeClock <- function(sourceFile, workersId = NULL, strickColumns = F) {
+processTimeClock <- function(sourceFile = "data/noviembre1.xlsx", workersId = NULL, strickColumns = F) {
   workers <-  read_excel(sourceFile)
   
   #TODO: set this required columns into a config file

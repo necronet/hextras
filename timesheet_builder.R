@@ -1,8 +1,7 @@
 # To create timesheet based on worker preprocess data
+source('worker_time_table.R')
 
 build_timesheet <- function(workersTimeClock) {
-  
-  source('./worker_time_table.R')
   library(lubridate)
   library(r2excel)
   
