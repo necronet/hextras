@@ -12,12 +12,20 @@ RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.n
 ENV PATH="${PATH}:/opt/R/${R_VERSION}/bin/"
 
 # System requirements for R packages
-RUN yum -y install openssl-devel
+RUN yum -y install openssl-devel libxml2-devel
+       
+RUN yum install -y wget java-1.8.0-openjdk java-1.8.0-openjdk-devel zip unzip
+RUN echo "JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")" | tee -a /etc/profile && source /etc/profile && echo $JAVA_HOME
+
+RUN export LD_LIBRARY_PATH=/usr/lib/jvm/jre/lib/amd64/server
+RUN R CMD javareconf
 
 # Find a way to list the packages better
-RUN Rscript -e "install.packages(c('httr', 'jsonlite', 'logger'), repos = 'https://cloud.r-project.org/')"
+RUN Rscript -e "install.packages(c('httr', 'jsonlite', 'logger', 'readxl', 'aws.s3', 'dplyr', 'tidyr', 'stringr', 'purrr', 'lubridate', 'DBI', 'xlsx'), repos = 'https://cloud.r-project.org/')"
 
+COPY .env ${LAMBDA_TASK_ROOT}/
 COPY *.R ${LAMBDA_TASK_ROOT}/
+RUN mkdir ${LAMBDA_TASK_ROOT}/generated/
 RUN chmod 755 -R ${LAMBDA_TASK_ROOT}/
   
 RUN printf '#!/bin/sh\ncd $LAMBDA_TASK_ROOT\nRscript runtime.R' > /var/runtime/bootstrap && chmod +x /var/runtime/bootstrap

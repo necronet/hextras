@@ -3,7 +3,8 @@ source('worker_time_table.R')
 
 build_timesheet <- function(workersTimeClock) {
   library(lubridate)
-  library(r2excel)
+  library(xlsx)
+  source('r2excel.R')
   
   wb <- createWorkbook(type="xlsx")
   IDS <- workersTimeClock %>% select(ID) %>% unique
@@ -55,4 +56,5 @@ build_timesheet <- function(workersTimeClock) {
   }
   saveWorkbook(wb, filename)
   
+  return (filename)
 }

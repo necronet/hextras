@@ -42,8 +42,7 @@ getWorkerTimeClock <- function(workerData, workersId = NULL){
 }
 
 # Process the source file and transform it into a timeClock tidy data
-processTimeClock <- function(sourceFile = "data/noviembre1.xlsx", workersId = NULL, strickColumns = F) {
-  workers <-  read_excel(sourceFile)
+processTimeClock <- function(workers, workersId = NULL, strickColumns = F) {
   
   #TODO: set this required columns into a config file
   requiredColumns <- c("Fecha", "Registros", "VIATICO ALIMENTACION", "VIATICO TRANSPORTE", "OBSERVACIONES")
