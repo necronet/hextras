@@ -3,6 +3,7 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(purrr)
+library(logger)
 source('utils.R')
 
 ## From raw data it will get the worker list of ids
@@ -17,6 +18,11 @@ getWorkersId <-function(workerData, workersId) {
 
 # From raw data it will provide the timeclock of the workers
 getWorkerTimeClock <- function(workerData, workersId = NULL){
+  log_info("Processing based on [workersData]")
+  
+  # Represent active state for the work hour
+  ESTADO_ACTIVE <- 1
+  
   workerData %>% 
     mutate(ID=case_when(
       grepl(x=Fecha, pattern='^([0-9]+) .+') ~ gsub(x=Fecha, pattern='^([0-9]+) .+', replacement='\\1'), 
@@ -27,9 +33,10 @@ getWorkerTimeClock <- function(workerData, workersId = NULL){
     mutate(Registros = ifelse(toupper(Registros) == "VACACIONES", NA, Registros), 
               viatico_alimentacion = `VIATICO ALIMENTACION`, 
               viatico_transporte = `VIATICO TRANSPORTE`,
+              estado = ifelse(is.na(ESTADO), ESTADO_ACTIVE, ESTADO),
               Observaciones = OBSERVACIONES) %>% 
     filter(str_detect(Fecha, "\\d{2}\\/\\d{2}\\/\\d{4}")) %>% filter(Registros != '--') %>%
-    filter(!is.na(Registros)) %>% select(ID, Fecha, Registros, Observaciones, viatico_alimentacion, viatico_transporte) %>%
+    filter(!is.na(Registros)) %>% select(ID, Fecha, Registros, Observaciones, viatico_alimentacion, viatico_transporte, estado) %>%
     separate(Registros, c('T1','T2','T3','T4'), sep = "\\|") %>% mutate_all(str_trim) %>% 
     filter(!is.na(T2)) %>% mutate(ID = as.integer(ID)) %>%
     mutate( incomplete = case_when(is.na(T4) ~ T, T ~ F), 
@@ -45,12 +52,13 @@ getWorkerTimeClock <- function(workerData, workersId = NULL){
 processTimeClock <- function(workers, workersId = NULL, strickColumns = F) {
   
   #TODO: set this required columns into a config file
-  requiredColumns <- c("Fecha", "Registros", "VIATICO ALIMENTACION", "VIATICO TRANSPORTE", "OBSERVACIONES")
+  requiredColumns <- c("Fecha", "Registros", "VIATICO ALIMENTACION", "VIATICO TRANSPORTE", "ESTADO", "OBSERVACIONES")
   missingColumns <- requiredColumns %in% colnames(workers)
   if ( length(requiredColumns[!missingColumns]) > 0 & strickColumns ) {
+    log_error(paste("Columnas insuficientes para general el reporte", paste(requiredColumns[!missingColumns], collapse = ',')))
     stop(paste("Columnas insuficientes para general el reporte", paste(requiredColumns[!missingColumns], collapse = ',')))
   }
-  
+  log_info("Columns have properly being setup")
   
   worker_id <- workers %>% filter(!str_detect(Fecha, "\\d{2}\\/\\d{2}\\/\\d{4}")) %>% 
     mutate(worker = Fecha) %>% select(worker) %>% 

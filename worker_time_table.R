@@ -6,6 +6,7 @@ DEFAULT_SELECTED_COLUMNS <- c("Fecha", "ENTRADA",
                               "TIEMPO EXTRA/ FALTANTE",
                               "VIATICO ALIMENTACION",
                               "VIATICO TRANSPORTE",
+                              "total_he_approved",
                               "OBSERVACIONES")
 
 addRetrievalColumns <- function(newColumns) {
@@ -32,6 +33,8 @@ timeTable <- function(worker_workday, currentID = -1, lunch_time = 0.5, addition
       workday_total_hours = as.numeric(total_workday),
       workday_total_hours = workday_total_hours - map2_dbl(ID, Fecha, get_worker_daily_hours)) %>% 
     mutate(total_workday_with_lunch = workday_total_hours -lunch_delta ) %>% 
+    mutate(total_he_approved = total_workday_with_lunch * as.numeric(estado) ) %>% 
+    mutate(total_he_approved =sprintf("%.2f",as.numeric(total_he_approved))) %>%
     mutate(ENTRADA = format(T1, "%H:%M %p"), `SALIDA A ALMUERZO` = format(T2, "%H:%M %p"),
            `ENTRADA ALMUERZO` = ifelse(is.na(T3),"*",format(T3, "%H:%M %p")), 
            `HORA ALMUERZO`= ifelse(!is.na(lunch), paste0(as.numeric(lunch), " min"), "*"),
@@ -42,6 +45,4 @@ timeTable <- function(worker_workday, currentID = -1, lunch_time = 0.5, addition
            `TIEMPO EXTRA/ FALTANTE` = sprintf("%.2f",total_workday_with_lunch),
            `VIATICO ALIMENTACION` = viatico_alimentacion, `VIATICO TRANSPORTE` = viatico_transporte, `OBSERVACIONES` = Observaciones) %>%
     select(selectColumns)
-    #pivot_longer(-Fecha, names_to = get_header_text(.$Fecha), values_to="Hora") %>%
-    #pivot_wider(names_from = "Fecha", values_from = "Hora")
 }

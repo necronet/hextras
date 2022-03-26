@@ -7,7 +7,6 @@
 #
 source("main.R")
 process <- function(file_name, bucket) {
-  readRenviron(".env")
   fileName <- generateFiles(bucket = bucket, sourceFile = file_name, isAWS = T)
-  list(file_name = fileName, bucket = bucket)
+  list(fileName = file_name, bucket = bucket)
 }
